@@ -293,7 +293,7 @@ def request_to_httpie(request):
 
     item_type = '{}\n{}\n{}\n{}\n{}\n{}\n{}\n\n'.format(
                                 '# | Item Type | Description |',
-                                '# | :----: | :----: |',
+                                '# | :---- | :---- |',
                                 '# | HTTP Headers | X-Date:today |',
                                 '# | URL parameters | token==secret |',
                                 '# | Data Fields | name=John |',
