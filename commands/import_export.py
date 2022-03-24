@@ -251,7 +251,7 @@ def request_to_httpie(request):
 
     headers = ''
     if req.headers:
-        headers = ['{}:{}'.format(k, v) for k, v in req.headers.items()]
+        headers = ["{}:'{}' \\\n".format(k, v) for k, v in req.headers.items()]
         headers = ' {}'.format(' '.join(headers))
 
     method = req.method.upper()
@@ -270,28 +270,39 @@ def request_to_httpie(request):
 
     qs = ''
     for k, v in req.params.items():
-        qs += " {}=='{}'".format(k, v)
+        qs += " {}=='{}' \\\n".format(k, v)
 
     data = ''
     form = ''
     stdin = ''
     if req.data:
-        data = ["{}='{}'".format(k, v) for k, v in req.data.items()]
+        data = ["{}='{}' \\\n".format(k, v) for k, v in req.data.items()]
         data = ' {}'.format(' '.join(data))
         form = ' -f'
     elif req.json:
         if isinstance(req.json, dict):
             for k, v in req.json.items():
                 if isinstance(v, str):
-                    data += ' {}={}'.format(k, v)
+                    data += ' {}={} \\\n'.format(k, v)
                 elif isinstance(v, (list, dict)):
-                    data += " {}:='{}'".format(k, json.dumps(v))
+                    data += " {}:='{}' \\\n".format(k, json.dumps(v))
                 else:  # boolean, number
-                    data += ' {}:={}'.format(k, str(v).lower())
+                    data += ' {}:={} \\\n'.format(k, str(v).lower())
         else:
             stdin = "echo '{}' | ".format(json.dumps(req.json))
 
-    return '{stdin}http{session}{form}{auth}{timeout}{method} {url}{qs}{headers}{cookies}{data}{filename}'.format(
+    item_type = '{}\n{}\n{}\n{}\n{}\n{}\n{}\n\n'.format(
+                                '# | Item Type | Description |',
+                                '# | :----: | :----: |',
+                                '# | HTTP Headers | X-Date:today |',
+                                '# | URL parameters | token==secret |',
+                                '# | Data Fields | name=John |',
+                                '# | Raw JSON fields | age:=29 |',
+                                '# | File upload fields | files@~/Desktop/test.jpg;type=file |'
+                                )
+
+    return '{item_type}{stdin}http{session}{form}{auth}{timeout}{method} {url}{qs}{headers}{cookies}{data}{filename}'.format(
+        item_type=item_type,
         stdin=stdin,
         session=' --session={}'.format(session) if session else '',
         form=form,
