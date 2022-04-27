@@ -61,6 +61,8 @@ contexts:
     - meta_content_scope: meta.response-headers string.unquoted.http-header.value
     - match: (application/json|text/json){{content_type_sep}}
       set: [response-type-json, content-type-suffix]
+    - match: (text/plain){{content_type_sep}}
+      set: [response-type-plain, content-type-suffix]
     - match: (application/xml|text/xml){{content_type_sep}}
       set: [response-type-xml, content-type-suffix]
     - match: (application/xhtml+xml|text/html){{content_type_sep}}
@@ -92,6 +94,12 @@ contexts:
     - meta_content_scope: meta.response-headers
     - match: ^$\n
       set: [response-body, scope:source.json]
+    - include: http-headers
+    
+  response-type-plain:
+    - meta_content_scope: meta.response-headers
+    - match: ^$\n
+      set: [response-body, scope:text.plain]
     - include: http-headers
 
   response-type-xml:
