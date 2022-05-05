@@ -208,7 +208,7 @@ def request_to_curl(request):
     if req.data:
         data = urlencode(req.data)
     elif req.json:
-        data = json.dumps(req.json)
+        data = json.dumps(req.json, ensure_ascii=False)
         req.headers['Content-Type'] = 'application/json'
 
     cookies = ''
@@ -285,11 +285,11 @@ def request_to_httpie(request):
                 if isinstance(v, str):
                     data += ' {}={} \\\n'.format(k, v)
                 elif isinstance(v, (list, dict)):
-                    data += " {}:='{}' \\\n".format(k, json.dumps(v))
+                    data += " {}:='{}' \\\n".format(k, json.dumps(v, ensure_ascii=False))
                 else:  # boolean, number
                     data += ' {}:={} \\\n'.format(k, str(v).lower())
         else:
-            stdin = "echo '{}' | ".format(json.dumps(req.json))
+            stdin = "echo '{}' | ".format(json.dumps(req.json, ensure_ascii=False))
 
     item_type = '{}\n{}\n{}\n{}\n{}\n{}\n{}\n\n'.format(
                                 '# | Item Type | Description |',
