@@ -208,7 +208,7 @@ def request_to_curl(request):
     if req.data:
         data = urlencode(req.data)
     elif req.json:
-        data = json.dumps(req.json, ensure_ascii=False)
+        data = json.dumps(req.json, indent=2, ensure_ascii=False)
         req.headers['Content-Type'] = 'application/json'
 
     cookies = ''
@@ -216,7 +216,7 @@ def request_to_curl(request):
         cookies = ['{}={}'.format(k, v) for k, v in req.cookies.items()]
         cookies = ';'.join(sorted(cookies))
 
-    headers = ["'{}: {}'".format(k, v) for k, v in req.headers.items()]
+    headers = ["'{}: {}' \\\n".format(k, v) for k, v in req.headers.items()]
     headers = " -H ".join(sorted(headers))
 
     auth_string = ''
@@ -226,12 +226,12 @@ def request_to_curl(request):
     elif is_instance(auth, 'HTTPBasicAuth'):
         auth_string = " -u '{}:{}'".format(auth.username, auth.password)
 
-    return "curl -X {method}{auth}{headers}{cookies}{data} '{url}{qs}'".format(
-        method=req.method,
-        auth=auth_string,
+    return "curl -X {method}{auth}{headers}{cookies}{data} '{url}{qs}' \\\n".format(
+        method='{} \\\n'.format(req.method),
+        auth='{} \\\n'.format(auth_string) if auth_string else '',
         headers=' -H {}'.format(headers) if headers else '',
-        cookies=" -b '{}'".format(cookies) if cookies else '',
-        data=" -d '{}'".format(data) if data else '',
+        cookies=" -b '{}' \\\n".format(cookies) if cookies else '',
+        data=" -d '{}' \\\n".format(data) if data else '',
         url=req.url,
         qs='?{}'.format(urlencode(req.params)) if req.params else '',
     )
@@ -291,18 +291,7 @@ def request_to_httpie(request):
         else:
             stdin = "echo '{}' | ".format(json.dumps(req.json, ensure_ascii=False))
 
-    item_type = '{}\n{}\n{}\n{}\n{}\n{}\n{}\n\n'.format(
-                                '# | Item Type | Description |',
-                                '# | :---- | :---- |',
-                                '# | HTTP Headers | X-Date:today |',
-                                '# | URL parameters | token==secret |',
-                                '# | Data Fields | name=John |',
-                                '# | Raw JSON fields | age:=29 |',
-                                '# | File upload fields | files@~/Desktop/test.jpg;type=file |'
-                                )
-
-    return '{item_type}{stdin}http{session}{form}{auth}{timeout}{method} {url}{qs}{headers}{cookies}{data}{filename}'.format(
-        item_type=item_type,
+    return '{stdin}http{session}{form}{auth}{timeout}{method} {url}{qs}{headers}{cookies}{data}{filename}'.format(
         stdin=stdin,
         session=' --session={}'.format(session) if session else '',
         form=form,
