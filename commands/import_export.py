@@ -298,7 +298,7 @@ def request_to_httpie(request):
         auth=auth_string,
         timeout=' --timeout={}'.format(timeout) if timeout else '',
         method=' {}'.format(method) if method != 'GET' else '',
-        url=req.url,
+        url='{} \\\n'.format(req.url),
         qs=qs,
         headers=headers,
         cookies=cookies,
